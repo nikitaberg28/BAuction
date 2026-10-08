@@ -4,13 +4,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.by1337.bauction.Main;
 import org.by1337.blib.command.Command;
-import org.by1337.blib.command.argument.ArgumentEnumValue;
-import org.by1337.blib.command.argument.ArgumentFloat;
 import org.by1337.blib.command.argument.ArgumentStrings;
 import org.by1337.blib.configuration.YamlContext;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -70,12 +67,6 @@ public class EventManager {
                     Bukkit.getScheduler().runTask(Main.getInstance(), () -> event.getPlayer().performCommand(Main.getMessage().messageBuilder(event.replace(msg))));
                 }));
     }
-
-
-    /**
-     * Sound в 1.21.3+ больше не enum, поэтому звук проигрывается по строковому ключу
-     * (minecraft:block.note_block.pling). Старые имена вида UI_BUTTON_CLICK тоже пробуем разобрать.
-     */
     private static void playSound(org.bukkit.entity.Player player, String name, float volume, float pitch) {
         String key = name.trim();
         if (!key.contains(":") && !key.contains(".")) {

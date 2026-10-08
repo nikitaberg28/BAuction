@@ -306,7 +306,6 @@ public class MenuItemBuilder implements Comparable<MenuItemBuilder> {
     }
 
     private static ItemFlag hidePotionEffectsFlag() {
-        // HIDE_POTION_EFFECTS переименован в HIDE_ADDITIONAL_TOOLTIP начиная с 1.20.5
         for (String name : new String[]{"HIDE_ADDITIONAL_TOOLTIP", "HIDE_POTION_EFFECTS"}) {
             try {
                 return ItemFlag.valueOf(name);

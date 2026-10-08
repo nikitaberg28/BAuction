@@ -44,7 +44,6 @@ public class BaseHeadHook {
                 return head;
             boolean applied = false;
             try {
-                // Paper API: работает на всех версиях, в т.ч. 1.21.9+ (где GameProfile/PropertyMap неизменяемы)
                 com.destroystokyo.paper.profile.PlayerProfile paperProfile = org.bukkit.Bukkit.createProfile(UUID.randomUUID(), "");
                 paperProfile.setProperty(new com.destroystokyo.paper.profile.ProfileProperty("textures", skinUrl));
                 headMeta.setPlayerProfile(paperProfile);
