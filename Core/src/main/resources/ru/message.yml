@@ -38,6 +38,10 @@ messages:
   online-seller: '&aонлайн'
   offline-seller: '&cоффлайн'
   search-type: '-полное_совпадение'
+  relist_success: "&#0dfb00» &fПеревыставлено лотов: &6{count}"
+  relist_limit: "&#fb093c» &fВаш лимит слотов: {limit}. Не перевыставлено лотов: {skipped}"
+  relist_nothing: "&#fb093c» &fУ вас нет товаров для перевыставления!"
+  relist_cooldown: "&#fb093c» &fПеревыставлять можно раз в 7 минут. Осталось: {time}"
 time-format:
   ago: 'назад'
   in: 'через'

@@ -1,17 +1,22 @@
 package org.by1337.bauction.util.auction;
 
+import org.bukkit.Keyed;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionData;
 import org.bukkit.plugin.Plugin;
-import org.by1337.blib.BLib;
+import org.by1337.bauction.Main;
 import org.by1337.blib.configuration.YamlContext;
 import org.by1337.bauction.db.kernel.SellItem;
-import org.by1337.blib.nbt.impl.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -44,8 +49,14 @@ public class TagUtil {
         Material material = itemStack.getType();
         list.add(material.name());
         ItemMeta im = itemStack.getItemMeta();
-        if (im.hasCustomModelData()) {
-            list.add("customModelData:" + im.getCustomModelData());
+        if (im != null) {
+            try {
+                if (im.hasCustomModelData()) {
+                    list.add("customModelData:" + im.getCustomModelData());
+                }
+            } catch (Throwable t) {
+                warnOnce("cmd", t);
+            }
         }
         itemStack.getEnchantments().forEach((e, i) -> {
             list.add(e.getKey().getKey());
@@ -55,13 +66,10 @@ public class TagUtil {
 
         if (im != null) {
             if (im instanceof PotionMeta potionMeta) {
-                potionMeta.getCustomEffects().forEach(potionEffect -> {
-                    list.add(potionEffect.getType().getName());
-                    list.add(potionEffect.getType().getName() + ":" + potionEffect.getAmplifier());
-                });
-                list.add(potionMeta.getBasePotionData().getType().name());
-                if (potionMeta.getBasePotionData().isUpgraded()) {
-                    list.add(potionMeta.getBasePotionData().getType().name() + ":1");
+                try {
+                    addPotionTags(list, potionMeta);
+                } catch (Throwable t) {
+                    warnOnce("potion", t);
                 }
             }
             list.addAll(parseTags(im.getPersistentDataContainer()));
@@ -83,14 +91,91 @@ public class TagUtil {
     }
 
     public static List<String> parseTags(PersistentDataContainer pdc) {
-        CompoundTag compound = BLib.getApi().getParseCompoundTag().pdcToCompoundTag(pdc);
-
+        return parseTagsFallback(pdc);
+    }
+    private static List<String> parseTagsFallback(PersistentDataContainer pdc) {
         List<String> list = new ArrayList<>();
-
-        for (String key : compound.getTags().keySet()) {
-            list.add(key + ":" + compound.get(key).getAsObject());
+        try {
+            for (NamespacedKey key : pdc.getKeys()) {
+                Object value = readPdcValue(pdc, key);
+                list.add(value == null ? key.toString() : key + ":" + value);
+            }
+        } catch (Throwable t) {
+            warnOnce("pdc-fallback", t);
         }
         return list;
+    }
+
+    private static Object readPdcValue(PersistentDataContainer pdc, NamespacedKey key) {
+        try {
+            if (pdc.has(key, PersistentDataType.STRING)) return pdc.get(key, PersistentDataType.STRING);
+            if (pdc.has(key, PersistentDataType.INTEGER)) return pdc.get(key, PersistentDataType.INTEGER);
+            if (pdc.has(key, PersistentDataType.LONG)) return pdc.get(key, PersistentDataType.LONG);
+            if (pdc.has(key, PersistentDataType.DOUBLE)) return pdc.get(key, PersistentDataType.DOUBLE);
+            if (pdc.has(key, PersistentDataType.FLOAT)) return pdc.get(key, PersistentDataType.FLOAT);
+            if (pdc.has(key, PersistentDataType.SHORT)) return pdc.get(key, PersistentDataType.SHORT);
+            if (pdc.has(key, PersistentDataType.BYTE)) return pdc.get(key, PersistentDataType.BYTE);
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private static void addPotionTags(List<String> list, PotionMeta potionMeta) {
+        for (PotionEffect potionEffect : potionMeta.getCustomEffects()) {
+            PotionEffectType type = potionEffect.getType();
+            String legacy = null;
+            try {
+                legacy = type.getName();
+            } catch (Throwable ignored) {
+            }
+            String key = null;
+            if (type instanceof Keyed keyed) {
+                try {
+                    key = keyed.getKey().getKey();
+                } catch (Throwable ignored) {
+                }
+            }
+            if (legacy != null) {
+                list.add(legacy);
+                list.add(legacy + ":" + potionEffect.getAmplifier());
+            }
+            if (key != null && !key.equalsIgnoreCase(legacy)) {
+                list.add(key);
+                list.add(key + ":" + potionEffect.getAmplifier());
+            }
+        }
+
+        PotionData base = null;
+        try {
+            base = potionMeta.getBasePotionData();
+        } catch (Throwable ignored) {
+        }
+        if (base != null && base.getType() != null) {
+            list.add(base.getType().name());
+            if (base.isUpgraded()) {
+                list.add(base.getType().name() + ":1");
+            }
+            return;
+        }
+        try {
+            Object type = PotionMeta.class.getMethod("getBasePotionType").invoke(potionMeta);
+            String name = null;
+            if (type instanceof Enum<?> en) {
+                name = en.name();
+            } else if (type instanceof Keyed keyed) {
+                name = keyed.getKey().getKey();
+            }
+            if (name != null) list.add(name);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static final Set<String> WARNED = Collections.synchronizedSet(new HashSet<>());
+
+    private static void warnOnce(String id, Throwable t) {
+        if (WARNED.add(id)) {
+            Main.getMessage().error("TagUtil: ошибка (%s), используется безопасный режим: %s", id, String.valueOf(t));
+        }
     }
 
     public static List<String> getTags(Material material) {

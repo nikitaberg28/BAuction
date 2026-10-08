@@ -36,6 +36,10 @@ messages:
   online-seller: '&aonline'
   offline-seller: '&coffline'
   search-type: '-complete_matches'
+  relist_success: "&#0dfb00» &fRelisted items: &6{count}"
+  relist_limit: "&#fb093c» &fYour slot limit: {limit}. Items not relisted: {skipped}"
+  relist_nothing: "&#fb093c» &fYou have no items to relist!"
+  relist_cooldown: "&#fb093c» &fYou can relist once every 7 minutes. Time left: {time}"
 time-format:
   ago: 'ago'
   in: 'in'

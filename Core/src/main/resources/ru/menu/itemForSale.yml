@@ -43,3 +43,14 @@ items:
     lore: []
     click_commands:
       - '[NEXT_PAGE]'
+
+  relist_all:
+    material: CLOCK
+    slot: 49
+    display_name: "<gradient:#00E8FC:#9AF6FC>⟳ Перевыставить все товары"
+    lore:
+      - '&r '
+      - '&#5AD9FB▌&r &fПоднимает ваши лоты в начало списка'
+      - '&#5AD9FB▌&r &fи обновляет срок продажи'
+    click_commands:
+      - '[RELIST_ALL]'

@@ -2,8 +2,10 @@ package org.by1337.bauction.menu;
 
 import org.bukkit.entity.Player;
 import org.by1337.bauction.Main;
+import org.by1337.bauction.db.kernel.RelistService;
 import org.by1337.bauction.db.kernel.SellItem;
 import org.by1337.bauction.db.kernel.User;
+import org.by1337.bauction.lang.Lang;
 import org.by1337.blib.command.Command;
 import org.by1337.blib.command.CommandException;
 import org.by1337.bmenu.menu.*;
@@ -112,6 +114,36 @@ public class ItemsForSaleMenu extends Menu {
                             }
                         })
         );
+        ITEMS_FOR_SALE_MENU_COMMAND.addSubCommand(
+                new Command<ItemsForSaleMenu>("[RELIST_ALL]")
+                        .executor((menu, args) -> {
+                            RelistService.Result r = RelistService.relistActive(menu.user);
+                            Player p = menu.getViewer();
+                            if (r.onCooldown()) {
+                                long sec = (r.cooldownLeftMs() + 999) / 1000;
+                                String time = (sec / 60) + " мин " + (sec % 60) + " сек";
+                                String m = msg("relist_cooldown", "&#fb093c» &fПеревыставлять можно раз в 7 минут. Осталось: {time}");
+                                if (!m.contains("{time}")) m = m + " (" + time + ")";
+                                Main.getMessage().sendMsg(p, m.replace("{time}", time));
+                            } else if (r.relisted() == 0 && r.failed() == 0 && r.skippedByLimit() == 0) {
+                                Main.getMessage().sendMsg(p, msg("relist_nothing", "&#fb093c» &fУ вас нет товаров для перевыставления!"));
+                            } else {
+                                Main.getMessage().sendMsg(p, msg("relist_success", "&#0dfb00» &fПеревыставлено лотов: &6{count}")
+                                        .replace("{count}", String.valueOf(r.relisted())));
+                                if (r.skippedByLimit() > 0) {
+                                    Main.getMessage().sendMsg(p, msg("relist_limit", "&#fb093c» &fЛимит слотов: {limit}. Не перевыставлено лотов: {skipped}")
+                                            .replace("{limit}", String.valueOf(r.limit()))
+                                            .replace("{skipped}", String.valueOf(r.skippedByLimit())));
+                                }
+                            }
+                            menu.refresh();
+                        })
+        );
+    }
+
+    private static String msg(String key, String fallback) {
+        String m = Lang.getMessage(key);
+        return m == null || m.startsWith("missing message") ? fallback : m;
     }
 
     private class Cash {

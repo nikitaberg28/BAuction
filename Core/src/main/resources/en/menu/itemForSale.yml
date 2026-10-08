@@ -42,3 +42,14 @@ items:
     lore: []
     click_commands:
       - '[NEXT_PAGE]'
+
+  relist_all:
+    material: CLOCK
+    slot: 49
+    display_name: "<gradient:#00E8FC:#9AF6FC>⟳ Relist all items"
+    lore:
+      - '&r '
+      - '&#5AD9FB▌&r &fMoves your lots to the top of the list'
+      - '&#5AD9FB▌&r &fand renews the sale duration'
+    click_commands:
+      - '[RELIST_ALL]'

@@ -42,13 +42,24 @@ public class BaseHeadHook {
             SkullMeta headMeta = (SkullMeta) head.getItemMeta();
             if (headMeta == null)
                 return head;
-            GameProfile profile = getGameProfile(skinUrl);
+            boolean applied = false;
             try {
-                Field profileField = headMeta.getClass().getDeclaredField("profile");
-                profileField.setAccessible(true);
-                profileField.set(headMeta, profile);
-            } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
-                BMenuApi.getMessage().error(e);
+                // Paper API: работает на всех версиях, в т.ч. 1.21.9+ (где GameProfile/PropertyMap неизменяемы)
+                com.destroystokyo.paper.profile.PlayerProfile paperProfile = org.bukkit.Bukkit.createProfile(UUID.randomUUID(), "");
+                paperProfile.setProperty(new com.destroystokyo.paper.profile.ProfileProperty("textures", skinUrl));
+                headMeta.setPlayerProfile(paperProfile);
+                applied = true;
+            } catch (Throwable ignored) {
+            }
+            if (!applied) {
+                try {
+                    GameProfile profile = getGameProfile(skinUrl);
+                    Field profileField = headMeta.getClass().getDeclaredField("profile");
+                    profileField.setAccessible(true);
+                    profileField.set(headMeta, profile);
+                } catch (Throwable e) {
+                    BMenuApi.getMessage().error(e);
+                }
             }
             head.setItemMeta(headMeta);
             return head;
