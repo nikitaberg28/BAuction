@@ -6,6 +6,8 @@ list of changes:
 - fix custom potion placement issue caused by `getBasePotionData() == null` error
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE)
 
-## Original Author: [By1337](https://github.com/By1337)
+
+
+### Original Author: [By1337](https://github.com/By1337)
