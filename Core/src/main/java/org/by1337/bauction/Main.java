@@ -344,6 +344,7 @@ public final class Main extends JavaPlugin {
                 )
                 .addSubCommand(new SellCmd("sell"))
                 .addSubCommand(new SearchCmd("search", menuLoader, cfg.getHomeMenu()))
+                .addSubCommand(new HandCmd("hand", menuLoader, cfg.getHomeMenu()))
                 .addSubCommand(new ViewCommand("view", menuLoader, cfg.getPlayerItemsViewMenu()))
                 .executor(((sender, args) -> {
                     if (!(sender instanceof Player player))
