@@ -4,6 +4,7 @@ list of changes:
 - fix listing items on the auction house due to: sound enum
 - add `[RELIST_ALL]` to relist items on the auction house all at once. 7-minute cooldown
 - fix custom potion placement issue caused by `getBasePotionData() == null` error
+- add `/ah hand` to find an item from your hand on ah menu
 
 ## License
 This project is licensed under the [MIT License](LICENSE)
